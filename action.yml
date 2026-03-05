@@ -1,0 +1,26 @@
+name: 'Kayo Security Scanner'
+description: 'Run Kayo security scanner with privileged Docker access'
+author: 'hanshal101'
+
+inputs:
+  server-url:
+    description: 'Kayo server URL (required)'
+    required: true
+  apikey:
+    description: 'Kayo API key (required)'
+    required: true
+  project-name:
+    description: 'Kayo project name (required)'
+    required: true
+  image-name:
+    description: 'Docker image name for the scanner'
+    required: false
+    default: 'kkyo'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'shield'
+  color: 'blue'

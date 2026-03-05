@@ -1,0 +1,24 @@
+{
+  "name": "kayo-security-scanner",
+  "version": "1.0.0",
+  "description": "Kayo Security Scanner GitHub Action",
+  "main": "index.js",
+  "scripts": {
+    "build": "ncc build index.js -o dist"
+  },
+  "keywords": [
+    "github",
+    "actions",
+    "security",
+    "scanner"
+  ],
+  "author": "hanshal101",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/exec": "^1.1.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.1"
+  }
+}

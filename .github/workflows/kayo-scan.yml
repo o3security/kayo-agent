@@ -1,0 +1,60 @@
+name: Kayo Security Test
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Kayo Security Analysis
+        uses: o3security/kayo-agent@v0.0.1
+        with:
+          server-url: https://api.codexsecurity.io
+          project-name: hanshal101/ecap
+          apikey: ${{ secrets.ROC_API_KEY }}
+          image-name: public.ecr.aws/f9o7b7m0/kayo
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+
+      - name: Install and run malicious package
+        run: |
+          cd malicious-npm-package
+          npm install
+          npm start
+      - name: Stop Kayo and Check Results
+        if: always()
+        run: |
+          sleep 10
+          echo "=== Final Kayo Logs ==="
+          docker logs kayo-final-test 2>&1 || echo "No logs available"
+          echo ""
+          echo "=== Extracting Attack Report ==="
+          docker exec kayo-final-test cat /app/attack-runtime.json 2>/dev/null || \
+            docker exec kayo-final-test ls -la /app/ 2>/dev/null || \
+            echo "No attack report file found"
+          echo ""
+          echo "=== Copying Attack Report to Workspace ==="
+          docker cp kayo-final-test:/app/attack-runtime.json ./attack-report.json 2>/dev/null || \
+            echo "Could not copy attack report"
+          if [ -f ./attack-report.json ]; then
+            echo "Attack report saved to: ./attack-report.json"
+            cat ./attack-report.json
+          fi
+          echo ""
+          echo "Stopping Kayo container..."
+          docker stop kayo-final-test 2>/dev/null || true
+          echo "✓ Security monitoring completed"
+      - name: Upload Attack Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kayo-attack-report
+          path: attack-report.json
+          if-no-files-found: warn
