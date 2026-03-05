@@ -27600,7 +27600,7 @@ async function run() {
     core.info('Executing Docker container...');
 
     // Execute the docker command
-    const exitCode = await exec.exec('docker', ...dockerArgs);
+    const exitCode = await exec.exec('docker', dockerArgs);
 
     if (exitCode !== 0) {
       core.setFailed(`Kayo scanner failed with exit code ${exitCode}`);
