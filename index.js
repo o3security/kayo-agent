@@ -17,7 +17,7 @@ async function run() {
     core.info(`Image: ${imageName}`);
 
     // Download and install the CLI
-    const cliPath = '/tmp/kayo-agent';
+    const cliPath = '/tmp/kayo';
 
     // Detect architecture
     const os = require('os');
@@ -49,7 +49,7 @@ async function run() {
     core.info('Executing Kayo Agent (asynchronous, non-blocking)...');
 
     // Execute the CLI command asynchronously (fire-and-forget)
-    exec.exec(cliPath, cliArgs).catch(err => core.warning(`Kayo agent background execution error: ${err.message}`));
+    exec.exec("sudo", cliPath, cliArgs).catch(err => core.warning(`Kayo agent background execution error: ${err.message}`));
 
     core.info('Scanner completed successfully.');
     core.info('Waiting for 1 minute before continuing...');
