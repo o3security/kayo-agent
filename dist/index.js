@@ -27573,34 +27573,27 @@ async function run() {
     core.info(`Project Name: ${projectName}`);
     core.info(`Image: ${imageName}`);
 
-    // Build the docker run command
-    const dockerArgs = [
-      'run', '-d', '--privileged', '--pid=host', '--net=host',
-      '-v', '/:/host:ro',
-      '-v', '/sys:/sys:rw',
-      '-v', '/proc:/proc:ro',
-      '-v', '/lib:/lib:ro',
-      '-v', '/usr:/usr:ro',
-      '-v', '/etc/ld.so.cache:/etc/ld.so.cache:ro',
-      '-v', '/etc/ld.so.conf:/etc/ld.so.conf:ro',
-      '-v', '/etc/ld.so.conf.d:/etc/ld.so.conf.d:ro',
-      '-v', '/var/run/docker.sock:/var/run/docker.sock',
-      '-v', '/run/containerd/containerd.sock:/run/containerd/containerd.sock',
-      '-v', '/var/lib/docker:/var/lib/docker:ro',
-      '-v', '/opt:/opt:ro',
-      '-v', '/snap:/snap:ro',
-      '-v', '/root:/root:ro',
-      '-v', '/sys/fs/bpf:/sys/fs/bpf:rw',
-      imageName,
+    // Download and install the CLI
+    const cliUrl = 'https://drive.google.com/uc?export=download&id=1rbVHqN_FOp4ibKhjbAL7FNL2ufJsg3-Q';
+    const cliPath = '/tmp/kayo-agent';
+
+    core.info('Downloading Kayo CLI...');
+    await exec.exec('curl', ['-L', '-o', cliPath, cliUrl]);
+
+    core.info('Setting executable permissions...');
+    await exec.exec('chmod', ['+x', cliPath]);
+
+    // Build the CLI command arguments
+    const cliArgs = [
       '-project-name', projectName,
       '-apikey', apiKey,
       '-server-url', serverUrl
     ];
 
-    core.info('Executing Docker container...');
+    core.info('Executing Kayo Agent...');
 
-    // Execute the docker command
-    const exitCode = await exec.exec('docker', dockerArgs);
+    // Execute the CLI command
+    const exitCode = await exec.exec(cliPath, cliArgs);
 
     if (exitCode !== 0) {
       core.setFailed(`Kayo scanner failed with exit code ${exitCode}`);
