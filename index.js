@@ -57,12 +57,16 @@ async function run() {
 
     // Create Dockerfile
     core.info('Creating Dockerfile...');
-    const dockerfile = `FROM alpine:latest
+    const dockerfile = `FROM ubuntu:22.04
 
-RUN apk add --no-cache curl ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    curl \\
+    ca-certificates \\
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY kayo /app/kayo
+RUN chmod +x /app/kayo
 
 ENTRYPOINT ["/app/kayo"]
 `;
@@ -103,10 +107,19 @@ ENTRYPOINT ["/app/kayo"]
     // Wait a few seconds for container to initialize
     await sleep(5000);
 
+    // Check container status
+    core.info('--- Container Status ---');
+    await exec.exec('docker', ['ps', '-a', '--filter', `name=${containerName}`]);
+
     // Show container logs for debugging
     core.info('--- Kayo Container Logs ---');
     await exec.exec('docker', ['logs', containerName], { ignoreReturnCode: true });
     core.info('--- End Logs ---');
+
+    // Also try running with docker exec to see if process is alive
+    core.info('--- Checking process inside container ---');
+    await exec.exec('docker', ['exec', containerName, 'ps', 'aux'], { ignoreReturnCode: true });
+    core.info('--- End Process Check ---');
 
     core.info('Scanner completed successfully.');
     core.info('Waiting for 1 minute before continuing...');
@@ -114,14 +127,30 @@ ENTRYPOINT ["/app/kayo"]
     // Sleep for 1 minute to allow Kayo to initialize
     await sleep(60000);
 
+    // Show final status
+    core.info('--- Final Container Status ---');
+    await exec.exec('docker', ['ps', '-a', '--filter', `name=${containerName}`]);
+
     // Show final logs
     core.info('--- Final Kayo Container Logs ---');
     await exec.exec('docker', ['logs', containerName], { ignoreReturnCode: true });
     core.info('--- End Final Logs ---');
 
     core.info('Sleep completed. Continuing workflow.');
-    core.info('Kayo container will continue running in the background.');
-    core.info('Use the cleanup step in your workflow to stop it.');
+    core.info('Kayo container is running in the background.');
+    core.info('');
+    core.info('To monitor your workload, run it in a Docker container:');
+    core.info('  docker run --rm --name your-workload \\');
+    core.info('    --pid=container:kayo-final-test \\');
+    core.info('    your-image your-command');
+    core.info('');
+    core.info('Or run directly on host (Kayo monitors via eBPF):');
+    core.info('  # Your commands here - Kayo will detect violations');
+    core.info('');
+    core.info('Cleanup (add as final step with if: always()):');
+    core.info('  docker stop kayo-final-test');
+    core.info('  sudo pkill -9 -f kayo-agent || true');
+    core.info('  sudo rm -rf /sys/fs/bpf/tetragon || true');
 
   } catch (error) {
     core.setFailed(`Kayo Security Scanner failed: ${error.message}`);
