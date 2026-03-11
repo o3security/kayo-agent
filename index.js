@@ -142,6 +142,8 @@ ENTRYPOINT ["/app/kayo"]
     core.info('To monitor your workload, run it in a Docker container:');
     core.info('  docker run --rm --name your-workload \\');
     core.info('    --pid=container:kayo-final-test \\');
+    core.info('    --cgroupns=host \\');
+    core.info('    -v /sys/fs/cgroup:/sys/fs/cgroup:ro \\');
     core.info('    your-image your-command');
     core.info('');
     core.info('Or run directly on host (Kayo monitors via eBPF):');
