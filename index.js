@@ -17,18 +17,24 @@ async function run() {
     core.info(`Image: ${imageName}`);
 
     // Download and install the CLI
-    const fileId = '1rbVHqN_FOp4ibKhjbAL7FNL2ufJsg3-Q';
     const cliPath = '/tmp/kayo-agent';
 
+    // Detect architecture
+    const os = require('os');
+    const arch = os.arch();
+    let binaryUrl;
+
+    if (arch === 'arm64') {
+      binaryUrl = 'https://codex-public-assets.s3.ap-south-1.amazonaws.com/kayo-arm64';
+      core.info('Detected ARM64 architecture');
+    } else {
+      // Default to amd64 for x64/x86_64
+      binaryUrl = 'https://codex-public-assets.s3.ap-south-1.amazonaws.com/kayo-amd64';
+      core.info('Detected x86_64 (amd64) architecture');
+    }
+
     core.info('Downloading Kayo CLI...');
-    // First attempt - may get confirmation page
-    await exec.exec('curl', ['-sL', '-o', cliPath, `https://drive.google.com/uc?export=download&id=${fileId}`]);
-
-    // Check if we got HTML instead of binary (Google Drive confirmation page)
-    const fileType = await exec.exec('file', [cliPath], { ignoreReturnCode: true, silent: true });
-
-    // If it's HTML, try with confirmation bypass
-    await exec.exec('curl', ['-sL', '-o', cliPath, `https://drive.google.com/uc?export=download&confirm=t&id=${fileId}`]);
+    await exec.exec('curl', ['-sL', '-o', cliPath, binaryUrl]);
 
     core.info('Setting executable permissions...');
     await exec.exec('chmod', ['+x', cliPath]);
