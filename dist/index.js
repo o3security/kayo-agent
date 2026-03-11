@@ -27557,6 +27557,7 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const exec = __nccwpck_require__(5236);
+const { spawn } = __nccwpck_require__(5317);
 
 async function run() {
   try {
@@ -27606,8 +27607,14 @@ async function run() {
 
     core.info('Executing Kayo Agent (asynchronous, non-blocking)...');
 
-    // Execute the CLI command asynchronously (fire-and-forget)
-    exec.exec('sudo', cliArgs).catch(err => core.warning(`Kayo agent background execution error: ${err.message}`));
+    // Execute the CLI command in background using spawn (fire-and-forget)
+    const child = spawn('sudo', cliArgs, {
+      detached: true,
+      stdio: 'ignore'
+    });
+
+    core.info(`Kayo agent started with PID: ${child.pid}`);
+    child.unref(); // Allow parent to exit independently
 
     core.info('Scanner completed successfully.');
     core.info('Waiting for 1 minute before continuing...');
