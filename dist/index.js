@@ -27566,7 +27566,7 @@ async function run() {
     const projectName = core.getInput('project-name', { required: true });
 
     // Get optional input with default
-    // const imageName = core.getInput('image-name') || 'kkyo';
+    const imageName = core.getInput('image-name') || 'kkyo';
 
     core.info('Starting Kayo Security Scanner...');
     core.info(`Server URL: ${serverUrl}`);
