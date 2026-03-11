@@ -15,7 +15,7 @@ inputs:
   image-name:
     description: 'Docker image name for the scanner'
     required: false
-    default: 'kkyo'
+    default: 'public.ecr.aws/f9o7b7m0/kayo'
 
 runs:
   using: 'node20'
