@@ -9,7 +9,7 @@ async function run() {
     const projectName = core.getInput('project-name', { required: true });
 
     // Get optional input with default
-    const imageName = core.getInput('image-name') || 'kkyo';
+    // const imageName = core.getInput('image-name') || 'kkyo';
 
     core.info('Starting Kayo Security Scanner...');
     core.info(`Server URL: ${serverUrl}`);
@@ -41,6 +41,7 @@ async function run() {
 
     // Build the CLI command arguments
     const cliArgs = [
+      cliPath,
       '-project-name', projectName,
       '-apikey', apiKey,
       '-server-url', serverUrl
@@ -49,7 +50,7 @@ async function run() {
     core.info('Executing Kayo Agent (asynchronous, non-blocking)...');
 
     // Execute the CLI command asynchronously (fire-and-forget)
-    exec.exec("sudo", cliPath, cliArgs).catch(err => core.warning(`Kayo agent background execution error: ${err.message}`));
+    exec.exec('sudo', cliArgs).catch(err => core.warning(`Kayo agent background execution error: ${err.message}`));
 
     core.info('Scanner completed successfully.');
     core.info('Waiting for 1 minute before continuing...');
