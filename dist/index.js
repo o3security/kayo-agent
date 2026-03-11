@@ -27656,11 +27656,25 @@ ENTRYPOINT ["/app/kayo"]
     await exec.exec('docker', dockerArgs);
 
     core.info(`Kayo container started: ${containerName}`);
+
+    // Wait a few seconds for container to initialize
+    await sleep(5000);
+
+    // Show container logs for debugging
+    core.info('--- Kayo Container Logs ---');
+    await exec.exec('docker', ['logs', containerName], { ignoreReturnCode: true });
+    core.info('--- End Logs ---');
+
     core.info('Scanner completed successfully.');
     core.info('Waiting for 1 minute before continuing...');
 
     // Sleep for 1 minute to allow Kayo to initialize
     await sleep(60000);
+
+    // Show final logs
+    core.info('--- Final Kayo Container Logs ---');
+    await exec.exec('docker', ['logs', containerName], { ignoreReturnCode: true });
+    core.info('--- End Final Logs ---');
 
     core.info('Sleep completed. Continuing workflow.');
     core.info('Kayo container will continue running in the background.');
